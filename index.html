@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Video Decoder — Convert Media to Structured Files</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="glass-bg"></div>
+
+  <div class="container">
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-icon">📺</span>
+        <h1>YouTube Video Decoder</h1>
+      </div>
+      <p class="subtitle">Paste a YouTube URL to fetch its real captions and extract timestamped insights — with AI when an API key is configured. Export as CSV, TXT, Markdown, or JSON.</p>
+    </header>
+
+    <!-- URL Input Section -->
+    <section class="panel input-panel">
+      <div class="input-row">
+        <input type="url" id="yt-url" placeholder="Paste YouTube link here (e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ)" required>
+        <button id="btn-decode" class="btn btn-primary">Decode Video</button>
+      </div>
+    </section>
+    <p id="decode-notice" class="notice hidden" role="status"></p>
+
+    <main class="dashboard-grid">
+      
+      <!-- Left Panel: Processing progress log checklist -->
+      <section class="panel tracker-panel">
+        <h3>Processing Operations</h3>
+        <ul class="tracker-list">
+          <li class="tracker-item" id="step-transcript">
+            <span class="tracker-dot"></span>
+            <span class="tracker-text">Fetching transcript & video details</span>
+          </li>
+          <li class="tracker-item" id="step-llm">
+            <span class="tracker-dot"></span>
+            <span class="tracker-text">Extracting structured insights via Gemini Pro</span>
+          </li>
+          <li class="tracker-item" id="step-format">
+            <span class="tracker-dot"></span>
+            <span class="tracker-text">Compiling export datasets & templates</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Right Panel: Fact/Insight list database -->
+      <section class="panel insights-panel">
+        <h3>Decoded Key Insights</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Insight / Fact</th>
+                <th>Category</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody id="insights-list">
+              <tr class="empty-state">
+                <td colspan="4">Enter a URL above and click Decode to extract insights.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Section: File Export Hub -->
+    <section class="panel exports-panel hidden" id="exports-panel">
+      <h3>Structured File Exports Hub</h3>
+      <p class="section-desc">Download the real decoded content in your preferred format:</p>
+      
+      <div class="exports-grid">
+        <!-- 1. CSV Dataframe -->
+        <div class="export-card">
+          <div class="card-top">
+            <span class="format-badge">CSV</span>
+            <h4>Insights Table</h4>
+          </div>
+          <p class="card-desc">Timestamp, insight, category and confidence as a spreadsheet-ready table.</p>
+          <div class="progress-bar-wrapper">
+            <div class="bar-outer"><div class="bar-inner" id="pb-csv" style="width: 0%"></div></div>
+          </div>
+          <button class="btn btn-secondary btn-block btn-download" data-format="csv" data-label="CSV" id="btn-dl-csv">Download CSV</button>
+        </div>
+
+        <!-- 2. TXT transcript -->
+        <div class="export-card">
+          <div class="card-top">
+            <span class="format-badge word">TXT</span>
+            <h4>Plain Transcript</h4>
+          </div>
+          <p class="card-desc">Full timestamped transcript plus key insights as plain text.</p>
+          <div class="progress-bar-wrapper">
+            <div class="bar-outer"><div class="bar-inner" id="pb-txt" style="width: 0%"></div></div>
+          </div>
+          <button class="btn btn-secondary btn-block btn-download" data-format="txt" data-label="TXT" id="btn-dl-txt">Download TXT</button>
+        </div>
+
+        <!-- 3. Markdown report -->
+        <div class="export-card">
+          <div class="card-top">
+            <span class="format-badge ppt">MD</span>
+            <h4>Markdown Report</h4>
+          </div>
+          <p class="card-desc">Headed report with insights and transcript — paste into docs or notes.</p>
+          <div class="progress-bar-wrapper">
+            <div class="bar-outer"><div class="bar-inner" id="pb-md" style="width: 0%"></div></div>
+          </div>
+          <button class="btn btn-secondary btn-block btn-download" data-format="md" data-label=".md" id="btn-dl-md">Download .md</button>
+        </div>
+
+        <!-- 4. JSON payload -->
+        <div class="export-card">
+          <div class="card-top">
+            <span class="format-badge audio">JSON</span>
+            <h4>Raw JSON Data</h4>
+          </div>
+          <p class="card-desc">Complete machine-readable payload: video, insights and segments.</p>
+          <div class="progress-bar-wrapper">
+            <div class="bar-outer"><div class="bar-inner" id="pb-json" style="width: 0%"></div></div>
+          </div>
+          <button class="btn btn-secondary btn-block btn-download" data-format="json" data-label="JSON" id="btn-dl-json">Download JSON</button>
+        </div>
+
+        <!-- 5. Copy to clipboard -->
+        <div class="export-card">
+          <div class="card-top">
+            <span class="format-badge ipynb">COPY</span>
+            <h4>Copy Report</h4>
+          </div>
+          <p class="card-desc">Copy the Markdown report straight to your clipboard. No file needed.</p>
+          <div class="progress-bar-wrapper">
+            <div class="bar-outer"><div class="bar-inner" id="pb-copy" style="width: 0%"></div></div>
+          </div>
+          <button class="btn btn-secondary btn-block btn-download" data-format="copy" data-label="Copy to clipboard" id="btn-copy-md">Copy to clipboard</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
